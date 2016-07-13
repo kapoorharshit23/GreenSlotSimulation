@@ -181,7 +181,7 @@ namespace GreenSlot
 
             //Making cost array of a job
             Console.WriteLine("Task's workflow based on cost array:");
-            jobCostArray(nodeArray, jobQueue, tNamesArray, taskDeadlineArray, taskEnergyRequirement, taskRunTimeArray, gEnergyarray, tCount);
+            jobCostArray(slotsRequired,nodeArray, jobQueue, tNamesArray, taskDeadlineArray, taskEnergyRequirement, taskRunTimeArray, gEnergyarray, tCount);
         }
         /*
          * Generating cost array of a job to 
@@ -189,7 +189,7 @@ namespace GreenSlot
          * execution on cloud infrastructure.
          * 
          */
-        public void jobCostArray(int[] nodeSlotArray, string[] sortedJobQueue, string[] tNames, string[] tDeadLines, double[] tEnergyReqs, int[] tRunTimes, double[] gEnergy, int totalTasks)
+        public void jobCostArray(int[] slotsPerTask, int[] nodeSlotArray, string[] sortedJobQueue, string[] tNames, string[] tDeadLines, double[] tEnergyReqs, int[] tRunTimes, double[] gEnergy, int totalTasks)
         {
             
         }
