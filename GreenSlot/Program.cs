@@ -170,7 +170,14 @@ namespace GreenSlot
             
             //Genereating a single workflow for all the jobs based on energy requirement
             Console.WriteLine("Task's workflow:");
-            jobsWorkflow(jobQueue,tNamesArray, taskDeadlineArray, taskEnergyRequirement, taskRunTimeArray, gEnergyarray, tCount);
+            //jobsWorkflow(jobQueue,tNamesArray, taskDeadlineArray, taskEnergyRequirement, taskRunTimeArray, gEnergyarray, tCount);
+
+            //Slots requirement calculation for each job
+            int[] slotsRequired = slotCalculation(jobQueue, tNamesArray, taskRunTimeArray, tCount);
+            for (int i = 0; i < tCount; i++)
+            {
+                Console.WriteLine(jobQueue[i] + " - " + slotsRequired[i]);
+            }
 
             //Making cost array of a job
             Console.WriteLine("Task's workflow based on cost array:");
@@ -184,7 +191,40 @@ namespace GreenSlot
          */
         public void jobCostArray(int[] nodeSlotArray, string[] sortedJobQueue, string[] tNames, string[] tDeadLines, double[] tEnergyReqs, int[] tRunTimes, double[] gEnergy, int totalTasks)
         {
-
+            
+        }
+        /*
+         * Creating a slot requirement array for each job
+         * */
+         public int[] slotCalculation(string[] sortedJobQueue, string[] tNames, int[] tRunTimes, int taskCount)
+        {
+            double temp=0.00;
+            double[] jobSlotReq = new double[taskCount];
+            int[] jobSlots = new int[taskCount];
+            for (int i = 0; i < taskCount; i++)
+            {
+                for (int j = 0; j < taskCount; j++)
+                {
+                    if(sortedJobQueue[i].Equals(tNames[j]))
+                    {
+                        jobSlotReq[i] = (((double)tRunTimes[j] / 60)/15);
+                    }            
+                }
+            }
+            for (int i = 0; i < taskCount; i++)
+            {
+                //Console.WriteLine(jobSlotReq[i]);
+                if (jobSlotReq[i] % 1 != 0)
+                {
+                    temp = (1 - (jobSlotReq[i] % 1));
+                    jobSlots[i] = (int)(jobSlotReq[i] + temp);
+                }
+                else
+                {
+                    jobSlots[i] = (int)(jobSlotReq[i]);
+                }
+            }
+            return jobSlots;
         }
 
         /*
