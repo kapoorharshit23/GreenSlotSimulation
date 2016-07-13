@@ -87,7 +87,7 @@ namespace GreenSlot
 
             /*
             *Green energy predictor
-            *& Brown enrgy prices. 
+            *& Brown energy prices. 
             * 
             *Generates random energy values for 96 slots of a window
             */
@@ -99,6 +99,19 @@ namespace GreenSlot
             }
 
             Console.WriteLine("Total Green Energy:" + totalGreenEnergy);
+
+            /*
+             *Number of nodes per slot generator 
+             * 
+             */
+            int[] nodeArray= nodeGenerator();
+            int totalNodes = 0;
+            for (int i = 0; i < 96; i++)
+            {
+                totalNodes = totalNodes + nodeArray[i];
+            }
+
+            Console.WriteLine("Total Nodes Available:" + totalNodes);
 
             /*
              * Calculating slack time for each task, corresponding to current time
@@ -158,7 +171,22 @@ namespace GreenSlot
             //Genereating a single workflow for all the jobs based on energy requirement
             Console.WriteLine("Task's workflow:");
             jobsWorkflow(jobQueue,tNamesArray, taskDeadlineArray, taskEnergyRequirement, taskRunTimeArray, gEnergyarray, tCount);
+
+            //Making cost array of a job
+            Console.WriteLine("Task's workflow based on cost array:");
+            jobCostArray(nodeArray, jobQueue, tNamesArray, taskDeadlineArray, taskEnergyRequirement, taskRunTimeArray, gEnergyarray, tCount);
         }
+        /*
+         * Generating cost array of a job to 
+         * find the best possible slots for its
+         * execution on cloud infrastructure.
+         * 
+         */
+        public void jobCostArray(int[] nodeSlotArray, string[] sortedJobQueue, string[] tNames, string[] tDeadLines, double[] tEnergyReqs, int[] tRunTimes, double[] gEnergy, int totalTasks)
+        {
+
+        }
+
         /*
          * Generating a single workflow for all the jobs 
          * based on LSTF ordering on the basis of energy requirement of each job
@@ -261,7 +289,7 @@ namespace GreenSlot
             for (int i = 0; i < tCount; i++)
             {
                 //Console.WriteLine(slackArray[i]);
-                slackArray[i] = sTimeSpanArray[i].TotalSeconds - taskRunTimeArray[i];
+                slackArray[i] = sTimeSpanArray[i].TotalSeconds - (taskRunTimeArray[i]);
                 //Console.WriteLine(slackTimeSpanArray[i].TotalSeconds);
             }
             return slackArray;
@@ -324,6 +352,21 @@ namespace GreenSlot
             }
 
             return greenEnergyAvail;
+        }
+        /*
+         * Random node generator for each slot
+         * */
+         public int[] nodeGenerator()
+        {
+            Random rnd = new Random();
+            int[] nodePerSlotAvail = new int[96];
+            int eVal;
+            for (int i = 0; i < 96; i++)
+            {
+                eVal = rnd.Next(0, 10);
+                nodePerSlotAvail[i] = eVal;
+            }
+            return nodePerSlotAvail;
         }
 
     }
