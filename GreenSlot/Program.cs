@@ -191,10 +191,15 @@ namespace GreenSlot
          */
         public void jobCostArray(int[] slotsPerTask, List<int> nodeSlotArray, string[] sortedJobQueue, string[] tNames, string[] tDeadLines, double[] tEnergyReqs, int[] tRunTimes, double[] gEnergy,int[] tReq, int totalTasks)
         {
+
+            System.IO.StreamWriter file = new System.IO.StreamWriter(@"C:\Users\Th3 Dark0\Documents\Visual Studio 2015\Projects\GreenSlot\TempBuffer.txt");  //buffer file to save the slot lists
+
+
             List<Tuple<string, List<int>>> slotListPerTask = new List<Tuple<string, List<int>>>();
             List<int> availSlots = new List<int>();
-            List<int> temp = new List<int>();           //Temporary array for making lists of slots for each task
-            List<int> slotOrderPerTask = new List<int>();
+
+            List<int> temp = new List<int>();               //temporary sum list for all the node and corresponding slots
+            List<int> slotOrderPerTask = new List<int>();   //Temporary list for making lists of slots for each task          
 
             int numOfSlots = 96;
             int slotCounter = 1;
@@ -208,6 +213,7 @@ namespace GreenSlot
             //Generating lists where each task can be executed
             for (int m = 0; m < totalTasks; m++)
             {
+                file.WriteLine(sortedJobQueue[m] + " : ");
                 Console.WriteLine(sortedJobQueue[m] + " : ");
                 for (int n = 0; n < totalTasks; n++)
                 {
@@ -228,7 +234,8 @@ namespace GreenSlot
                             if (sum == NumberOfNodesReq)
                             {
                                 //list add
-
+                                file.Write(i);
+                                file.WriteLine();
                                 Console.Write(i);
                                 Console.WriteLine();
                             }
@@ -263,15 +270,20 @@ namespace GreenSlot
                                     if (sum == NumberOfNodesReq)
                                     {
                                         //list add
-
-                                        //Tuple<string,List<int>> tempTuple=(sortedJobQueue[m],);
-                                        foreach (int x in slotOrderPerTask)
+                                        List<int> tempOrderList = slotOrderPerTask;
+                                        Tuple<string, List<int>> tempTuple = new Tuple<string, List<int>>(sortedJobQueue[m],tempOrderList);
+                                        
+                                        foreach(int x in slotOrderPerTask)
                                         {
-                                            Console.Write(x + " ");
+                                            file.Write(x + " ");
+                                            //Console.Write(x + " ");
                                         }
-                                        //slotListPerTask.Add(Tuple.Create<string, List<int>>(sortedJobQueue[m], temp));
+                                        
+                                        slotListPerTask.Add(tempTuple);
 
-                                        Console.WriteLine();
+
+                                        file.WriteLine();
+                                        //Console.WriteLine();
                                         sum = nodeSlotArray[i];
                                         temp.RemoveRange(0, temp.Count);
                                         slotOrderPerTask.RemoveRange(0, slotOrderPerTask.Count);
@@ -284,30 +296,40 @@ namespace GreenSlot
                     }
                 }
             }
+            file.Flush();
+            file.Close();
+
+            string[] lines = System.IO.File.ReadAllLines(@"C:\Users\Th3 Dark0\Documents\Visual Studio 2015\Projects\GreenSlot\TempBuffer.txt");    //Reading from the buffer file
+
+            Console.WriteLine("File Content:");
+            foreach(string line in lines)
+            {
+                Console.WriteLine(line);
+            }
 
             //Printing the slot lists as per number of slots condition boundary
-
-            //for (int i = 0; i < totalTasks; i++)
+            //foreach(List<int> slotList in slotsList)
             //{
-            //    Console.WriteLine(sortedJobQueue[i] + " list:");
-            //    for (int j = 0; j < totalTasks; j++)
+            //    foreach(int slot in slotList)
             //    {
-            //        if (sortedJobQueue[i].Equals(tNames[j]))
-            //        {
-            //            foreach (Tuple<string, List<int>> x in slotListPerTask)
-            //            {
-            //                //Console.WriteLine(x);
-            //                if (x.Item1.Equals(sortedJobQueue[i]))
-            //                {
-            //                    for (int k = 0; k < x.Item2.Count; k++)
-            //                    {
-            //                        Console.Write(x.Item2[k]+" ");
-            //                    }
-            //                }
-            //            }
-            //        }
+            //        Console.Write(slot + " ");
             //    }
             //    Console.WriteLine();
+            //}
+            //foreach (Tuple<string, List<int>> x in slotListPerTask)
+            //{
+            //    Console.WriteLine(x.Item1 + ":");
+            //    for(int i=0;i<x.Item2.Count;i++)
+            //    {
+            //        foreach(int s in x.Item2)
+            //        {
+            //            Console.Write(s + " ");
+            //        }
+            //    }
+            //}
+            //foreach(Tuple<string,List<int>> y in tempTuple1)
+            //{
+
             //}
 
         }
