@@ -106,7 +106,7 @@ namespace GreenSlot
              */
             List<int> nodeArray= nodeGenerator();
             int totalNodes = 0;
-            for (int i = 0; i < 96; i++)
+            for (int i = 0; i < 11; i++)
             {
                 totalNodes = totalNodes + nodeArray[i];
             }
@@ -194,6 +194,7 @@ namespace GreenSlot
             List<Tuple<string, List<int>>> slotListPerTask = new List<Tuple<string, List<int>>>();
             List<int> availSlots = new List<int>();
             List<int> temp = new List<int>();           //Temporary array for making lists of slots for each task
+            List<int> slotOrderPerTask = new List<int>();
 
             int numOfSlots = 96;
             int slotCounter = 1;
@@ -220,35 +221,51 @@ namespace GreenSlot
                         for (int i = 0; i < nodeSlotArray.Count; i++)
                         {
                             temp.RemoveRange(0, temp.Count);
+                            slotOrderPerTask.RemoveRange(0, slotOrderPerTask.Count);
                             sum = nodeSlotArray[i];
                             //Console.WriteLine("s=" + sum);
+                            //Console.WriteLine("i=" + i);
                             if (sum == NumberOfNodesReq)
                             {
-                                Console.Write(nodeSlotArray[i]);
+                                //list add
+
+                                Console.Write(i);
                                 Console.WriteLine();
                             }
                             else
                             {
                                 temp.Add(nodeSlotArray[i]);
+                                slotOrderPerTask.Add(i);
                                 for (int j = i + 1; j < nodeSlotArray.Count; j++)
                                 {
                                     lastSumVal = sum;
                                     sum = temp.Sum() + nodeSlotArray[j];
 
+                                    //Console.WriteLine("sum=" + sum);
+                                    //Console.WriteLine("LastSum=" + lastSumVal);
+                                    //Console.WriteLine("temp.sum=" + temp.Sum());
+                                    //Console.WriteLine("A[j]=" + nodeSlotArray[j]);
+
                                     if (sum > NumberOfNodesReq)
                                     {
+                                        //Console.WriteLine("in if loop");
                                         sum = lastSumVal;
+                                        //Console.WriteLine("sum1=" + sum);
+                                        //Console.WriteLine("LastSum1=" + lastSumVal);
 
                                     }
                                     else
                                     {
                                         temp.Add(nodeSlotArray[j]);
+                                        slotOrderPerTask.Add(j);
                                     }
 
                                     if (sum == NumberOfNodesReq)
                                     {
+                                        //list add
+
                                         //Tuple<string,List<int>> tempTuple=(sortedJobQueue[m],);
-                                        foreach (int x in temp)
+                                        foreach (int x in slotOrderPerTask)
                                         {
                                             Console.Write(x + " ");
                                         }
@@ -257,7 +274,9 @@ namespace GreenSlot
                                         Console.WriteLine();
                                         sum = nodeSlotArray[i];
                                         temp.RemoveRange(0, temp.Count);
+                                        slotOrderPerTask.RemoveRange(0, slotOrderPerTask.Count);
                                         temp.Add(nodeSlotArray[i]);
+                                        slotOrderPerTask.Add(i);
                                     }
                                 }
                             }
@@ -501,7 +520,7 @@ namespace GreenSlot
             List<int> nodePerSlotAvail = new List<int>();
             int eVal;
             int counter = 0;
-            for (int i = 0; i < 96; i++)
+            for (int i = 0; i < 11; i++)
             {
                 eVal = rnd.Next(0, 10);
                 nodePerSlotAvail.Add(eVal);
