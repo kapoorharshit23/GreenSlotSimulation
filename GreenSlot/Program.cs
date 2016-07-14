@@ -195,7 +195,7 @@ namespace GreenSlot
             System.IO.StreamWriter file = new System.IO.StreamWriter(@"C:\Users\Th3 Dark0\Documents\Visual Studio 2015\Projects\GreenSlot\TempBuffer.txt");  //buffer file to save the slot lists
 
 
-            List<Tuple<string, List<int>>> slotListPerTask = new List<Tuple<string, List<int>>>();
+            List<Tuple<string, List<int>>> slotListPerTask = new List<Tuple<string, List<int>>>();  //Actual list with taskName,list key-value pair
             List<int> availSlots = new List<int>();
 
             List<int> temp = new List<int>();               //temporary sum list for all the node and corresponding slots
@@ -270,17 +270,12 @@ namespace GreenSlot
                                     if (sum == NumberOfNodesReq)
                                     {
                                         //list add
-                                        List<int> tempOrderList = slotOrderPerTask;
-                                        Tuple<string, List<int>> tempTuple = new Tuple<string, List<int>>(sortedJobQueue[m],tempOrderList);
                                         
                                         foreach(int x in slotOrderPerTask)
                                         {
-                                            file.Write(x + " ");
+                                            file.Write(x + ",");
                                             //Console.Write(x + " ");
                                         }
-                                        
-                                        slotListPerTask.Add(tempTuple);
-
 
                                         file.WriteLine();
                                         //Console.WriteLine();
@@ -300,38 +295,62 @@ namespace GreenSlot
             file.Close();
 
             string[] lines = System.IO.File.ReadAllLines(@"C:\Users\Th3 Dark0\Documents\Visual Studio 2015\Projects\GreenSlot\TempBuffer.txt");    //Reading from the buffer file
+            slotListPerTask=readBuf(lines);
 
-            Console.WriteLine("File Content:");
-            foreach(string line in lines)
+            foreach (Tuple<string, List<int>> tuple in slotListPerTask)
             {
-                Console.WriteLine(line);
+                Console.WriteLine(tuple.Item1+":");
+                foreach (int item in tuple.Item2)
+                {
+                    Console.Write(item + " ");
+                }
+                Console.WriteLine();
             }
 
-            //Printing the slot lists as per number of slots condition boundary
-            //foreach(List<int> slotList in slotsList)
+        }
+        /*
+         * Reading from the buffer file
+         * and storing the result in a datastructure
+         * */
+        public List<Tuple<string, List<int>>> readBuf(string[] linesFromFile)
+        {
+            List<Tuple<string, List<int>>> slotListPerTask = new List<Tuple<string, List<int>>>();
+            string taskName="";
+            string taskLine;
+
+
+            List<int> tempList;
+            Tuple<string, List<int>> tempTuple;
+
+            //Console.WriteLine("File Content:");
+            foreach (string line in linesFromFile)
+            {
+                if (line.Substring(0, 4).Equals("task"))
+                {
+                    taskName = line;
+                    taskName = taskName.Substring(0, taskName.Length - 3);
+                    //Console.WriteLine(taskName);
+                }
+                else
+                {
+                    taskLine = line;
+                    taskLine = taskLine.Substring(0, taskLine.Length - 1);
+                    tempList = new List<int>(Array.ConvertAll(taskLine.Split(','), int.Parse));
+                    
+                    tempTuple = new Tuple<string, List<int>>(taskName, tempList);
+                    slotListPerTask.Add(tempTuple);
+                }
+            }
+            //foreach(Tuple<string,List<int>> tuple in slotListPerTask)
             //{
-            //    foreach(int slot in slotList)
+            //    Console.WriteLine(tuple.Item1 + " slots list:");
+            //    foreach(int item in tuple.Item2)
             //    {
-            //        Console.Write(slot + " ");
+            //        Console.Write(item + " ");
             //    }
             //    Console.WriteLine();
             //}
-            //foreach (Tuple<string, List<int>> x in slotListPerTask)
-            //{
-            //    Console.WriteLine(x.Item1 + ":");
-            //    for(int i=0;i<x.Item2.Count;i++)
-            //    {
-            //        foreach(int s in x.Item2)
-            //        {
-            //            Console.Write(s + " ");
-            //        }
-            //    }
-            //}
-            //foreach(Tuple<string,List<int>> y in tempTuple1)
-            //{
-
-            //}
-
+            return slotListPerTask;
         }
         /*
          * Creating a slot requirement array for each job
