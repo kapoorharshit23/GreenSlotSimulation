@@ -207,11 +207,12 @@ namespace GreenSlot
             //Generating lists where each task can be executed
             for (int m = 0; m < totalTasks; m++)
             {
+                Console.WriteLine(sortedJobQueue[m] + " : ");
                 for (int n = 0; n < totalTasks; n++)
                 {
                     if(sortedJobQueue[m].Equals(tNames[n]))
                     {
-                        int count = slotsPerTask[m];      //while loop increment counter
+                        //int count = slotsPerTask[m];      //while loop increment counter
                         int sum = 0;        //represents sum of nodes
                         int lastSumVal = 0;     //last iteration value of sum
                         int NumberOfNodesReq = tReq[n];     //number of the required nodes of the job
@@ -234,16 +235,10 @@ namespace GreenSlot
                                     lastSumVal = sum;
                                     sum = temp.Sum() + nodeSlotArray[j];
 
-                                    //Console.WriteLine("sum=" + sum);
-                                    //Console.WriteLine("LastSum=" + lastSumVal);
-                                    //Console.WriteLine("temp.sum=" + temp.Sum());
-                                    //Console.WriteLine("A[j]=" + A[j]);
                                     if (sum > NumberOfNodesReq)
                                     {
-                                        //Console.WriteLine("in if loop");
                                         sum = lastSumVal;
-                                        //Console.WriteLine("sum1=" + sum);
-                                        //Console.WriteLine("LastSum1=" + lastSumVal);
+
                                     }
                                     else
                                     {
@@ -252,9 +247,14 @@ namespace GreenSlot
 
                                     if (sum == NumberOfNodesReq)
                                     {
-                                        slotListPerTask.Add(Tuple.Create<string, List<int>>(sortedJobQueue[m], temp));
+                                        //Tuple<string,List<int>> tempTuple=(sortedJobQueue[m],);
+                                        foreach (int x in temp)
+                                        {
+                                            Console.Write(x + " ");
+                                        }
+                                        //slotListPerTask.Add(Tuple.Create<string, List<int>>(sortedJobQueue[m], temp));
 
-                                        //Console.WriteLine();
+                                        Console.WriteLine();
                                         sum = nodeSlotArray[i];
                                         temp.RemoveRange(0, temp.Count);
                                         temp.Add(nodeSlotArray[i]);
@@ -268,32 +268,29 @@ namespace GreenSlot
 
             //Printing the slot lists as per number of slots condition boundary
 
-            for (int i = 0; i < totalTasks; i++) 
-            {
-                Console.WriteLine(sortedJobQueue[i] + " list:");
-                for (int j = 0; j < totalTasks; j++)
-                {
-                    if(sortedJobQueue[i].Equals(tNames[j]))
-                    {
-                        foreach (Tuple<string, List<int>> x in slotListPerTask)
-                        {
-                            if(x.Item1.Equals(sortedJobQueue[i]))
-                            {
-                                List<int> tempList = x.Item2;
-                                if(tempList.Count<=tReq[j])
-                                {
-                                    foreach(int y in tempList)
-                                    {
-                                        Console.Write(y + " ");
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                Console.WriteLine();
-            }
-            
+            //for (int i = 0; i < totalTasks; i++)
+            //{
+            //    Console.WriteLine(sortedJobQueue[i] + " list:");
+            //    for (int j = 0; j < totalTasks; j++)
+            //    {
+            //        if (sortedJobQueue[i].Equals(tNames[j]))
+            //        {
+            //            foreach (Tuple<string, List<int>> x in slotListPerTask)
+            //            {
+            //                //Console.WriteLine(x);
+            //                if (x.Item1.Equals(sortedJobQueue[i]))
+            //                {
+            //                    for (int k = 0; k < x.Item2.Count; k++)
+            //                    {
+            //                        Console.Write(x.Item2[k]+" ");
+            //                    }
+            //                }
+            //            }
+            //        }
+            //    }
+            //    Console.WriteLine();
+            //}
+
         }
         /*
          * Creating a slot requirement array for each job
@@ -465,10 +462,10 @@ namespace GreenSlot
                 }
             }
 
-            for (int i = 0; i < 96; i++)
+            /*for (int i = 0; i < 96; i++)
             {
                 Console.WriteLine(i + "--" + greenEnergyAvail[i]);
-            }
+            }*/
 
 
             for (int i = 0; i < 96; i++)
@@ -503,10 +500,16 @@ namespace GreenSlot
             Random rnd = new Random();
             List<int> nodePerSlotAvail = new List<int>();
             int eVal;
+            int counter = 0;
             for (int i = 0; i < 96; i++)
             {
                 eVal = rnd.Next(0, 10);
                 nodePerSlotAvail.Add(eVal);
+            }
+            foreach(int slot in nodePerSlotAvail)
+            {
+                Console.WriteLine(counter+" has "+slot);
+                counter = counter + 1;
             }
             return nodePerSlotAvail;
         }
