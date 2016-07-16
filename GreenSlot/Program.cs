@@ -106,7 +106,7 @@ namespace GreenSlot
              */
             List<int> nodeArray= nodeGenerator();
             int totalNodes = 0;
-            for (int i = 0; i < 11; i++)
+            for (int i = 0; i < 96; i++)
             {
                 totalNodes = totalNodes + nodeArray[i];
             }
@@ -167,12 +167,13 @@ namespace GreenSlot
                 }
             }
 
-            
+
             //Genereating a single workflow for all the jobs based on energy requirement
-            Console.WriteLine("Task's workflow:");
+
             //jobsWorkflow(jobQueue,tNamesArray, taskDeadlineArray, taskEnergyRequirement, taskRunTimeArray, gEnergyarray, tCount);
 
             //Slots requirement calculation for each job
+            Console.WriteLine("Slot's per task:");
             int[] slotsRequired = slotCalculation(jobQueue, tNamesArray, taskRunTimeArray, tCount);
             for (int i = 0; i < tCount; i++)
             {
@@ -180,7 +181,7 @@ namespace GreenSlot
             }
 
             //Making cost array of a job
-            Console.WriteLine("Task's workflow based on cost array:");
+            Console.WriteLine("______________________________________________________");
             jobCostArray(slotsRequired, nodeArray, jobQueue, tNamesArray, taskDeadlineArray, taskEnergyRequirement, taskRunTimeArray, gEnergyarray, taskReqArray, tCount);
         }
         /*
@@ -214,7 +215,7 @@ namespace GreenSlot
             for (int m = 0; m < totalTasks; m++)
             {
                 file.WriteLine(sortedJobQueue[m] + " : ");
-                Console.WriteLine(sortedJobQueue[m] + " : ");
+                //Console.WriteLine(sortedJobQueue[m] + " : ");
                 for (int n = 0; n < totalTasks; n++)
                 {
                     if(sortedJobQueue[m].Equals(tNames[n]))
@@ -294,19 +295,32 @@ namespace GreenSlot
             file.Flush();
             file.Close();
 
+            int limit = 0;
             string[] lines = System.IO.File.ReadAllLines(@"C:\Users\Th3 Dark0\Documents\Visual Studio 2015\Projects\GreenSlot\TempBuffer.txt");    //Reading from the buffer file
             slotListPerTask=readBuf(lines);
 
-            foreach (Tuple<string, List<int>> tuple in slotListPerTask)
+
+            for (int i = 0; i < totalTasks; i++)
             {
-                Console.WriteLine(tuple.Item1+":");
-                foreach (int item in tuple.Item2)
+                Console.WriteLine(sortedJobQueue[i]+" : ");
+                Console.WriteLine("Slots required:"+slotsPerTask[i]);
+                foreach (Tuple<string, List<int>> tuple in slotListPerTask)
                 {
-                    Console.Write(item + " ");
+                    if (tuple.Item1.Equals(sortedJobQueue[i]))
+                        {
+                            limit = slotsPerTask[i];            //limit being the slot required by that task
+                            if (tuple.Item2.Count <= limit)
+                            {
+                                foreach (int item in tuple.Item2)
+                                {
+                                    Console.Write(item + " ");
+                                }
+                            Console.WriteLine();
+                            }
+                        }
                 }
                 Console.WriteLine();
             }
-
         }
         /*
          * Reading from the buffer file
@@ -561,7 +575,7 @@ namespace GreenSlot
             List<int> nodePerSlotAvail = new List<int>();
             int eVal;
             int counter = 0;
-            for (int i = 0; i < 11; i++)
+            for (int i = 0; i < 96; i++)
             {
                 eVal = rnd.Next(0, 10);
                 nodePerSlotAvail.Add(eVal);
