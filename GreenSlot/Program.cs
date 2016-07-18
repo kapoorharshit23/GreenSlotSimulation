@@ -58,9 +58,9 @@ namespace GreenSlot
             string[] jobQueue = new string[tCount];      //Actual sorted job queue
             TimeSpan[] jobSlack = new TimeSpan[tCount];  //sorted job slack time
 
+            int totalSlots = 11;
             int totalBrownEnergy = 1000;
-            int dayBrownEnergyPrice = 100;
-            int nightBrownEnergyPrice = 70;
+            
 
             /*
              *Calculating Energy requirement of a job 
@@ -82,7 +82,7 @@ namespace GreenSlot
             Console.WriteLine("Energy Consumption of each task:");
             for (int i = 0; i < tCount; i++)
             {
-                Console.WriteLine(taskRunTimeArray[i] + " : " + taskEnergyRequirement[i]);
+                Console.WriteLine(tNamesArray[i] + " : " + taskEnergyRequirement[i]);
             }
 
             /*
@@ -93,7 +93,7 @@ namespace GreenSlot
             */
             double[] gEnergyarray=calculateGreenEnery();        //Array with Green energy deposits for each slot
             double totalGreenEnergy = 0;
-            for (int i = 0; i < 96; i++)
+            for (int i = 0; i < totalSlots; i++)
             {
                 totalGreenEnergy = totalGreenEnergy + gEnergyarray[i];
             }
@@ -106,7 +106,7 @@ namespace GreenSlot
              */
             List<int> nodeArray= nodeGenerator();
             int totalNodes = 0;
-            for (int i = 0; i < 96; i++)
+            for (int i = 0; i < totalSlots; i++)
             {
                 totalNodes = totalNodes + nodeArray[i];
             }
@@ -197,16 +197,17 @@ namespace GreenSlot
 
 
             List<Tuple<string, List<int>>> slotListPerTask = new List<Tuple<string, List<int>>>();  //Actual list with taskName,list key-value pair
+            List<Tuple<string, List<int>>> slotListPerTaskLimit = new List<Tuple<string, List<int>>>();  //Actual list with taskName,list key-value pair and all workflows adhering to slot limit
             List<int> availSlots = new List<int>();
 
             List<int> temp = new List<int>();               //temporary sum list for all the node and corresponding slots
             List<int> slotOrderPerTask = new List<int>();   //Temporary list for making lists of slots for each task          
 
-            int numOfSlots = 96;
+            int totalSlots = 96;
             int slotCounter = 1;
             
 
-            for (int i = 1; i <= numOfSlots; i++) 
+            for (int i = 1; i <= totalSlots; i++) 
             {
                 availSlots.Add(i);
             }
@@ -302,26 +303,75 @@ namespace GreenSlot
 
             for (int i = 0; i < totalTasks; i++)
             {
-                Console.WriteLine(sortedJobQueue[i]+" : ");
-                Console.WriteLine("Slots required:"+slotsPerTask[i]);
+                Console.WriteLine(sortedJobQueue[i] + " : ");
+                Console.WriteLine("Slots required:" + slotsPerTask[i]);
                 foreach (Tuple<string, List<int>> tuple in slotListPerTask)
                 {
                     if (tuple.Item1.Equals(sortedJobQueue[i]))
+                    {
+                        limit = slotsPerTask[i];            //limit being the slot required by that task
+                        if (tuple.Item2.Count <= limit)
                         {
-                            limit = slotsPerTask[i];            //limit being the slot required by that task
-                            if (tuple.Item2.Count <= limit)
+                            slotListPerTaskLimit.Add(tuple);
+                            foreach (int item in tuple.Item2)
                             {
-                                foreach (int item in tuple.Item2)
-                                {
-                                    Console.Write(item + " ");
-                                }
-                            Console.WriteLine();
+                                Console.Write(item + " ");
                             }
+                            Console.WriteLine();
                         }
+                    }
                 }
                 Console.WriteLine();
             }
+
+            //cost calculation for each list or workflows
+
+            foreach (Tuple<string, List<int>> tuple in slotListPerTaskLimit)
+            {
+                costCalculation(tuple,tNames,tEnergyReqs,gEnergy,totalTasks);
+            }
+
+
         }
+        /*
+         * 
+         * Calculating the cost of each task's workflow
+         * and accordingly scheduling the jobs
+         * */
+        public void costCalculation(Tuple<string, List<int>> tuple,string[] taskNames, double[] taskEnergyReqs, double[] greenEnergyPerSlot, int totalTasks)
+        {
+            int dayBrownEnergyPrice = 100;
+            int nightBrownEnergyPrice = 60;
+
+            double costTuple = 0.00;
+
+            int totalSlots = 96;
+            int dayNightSlots = 48;
+
+            //Task information
+            string taskName=tuple.Item1;
+            double taskEnergyReq;           
+
+            int[] daySlots = new int[dayNightSlots];
+            int[] nightSlots = new int[dayNightSlots];
+
+            for (int i = 0; i < dayNightSlots; i++)
+            {
+                daySlots[i] = i;                //0,1,2,3....
+                nightSlots[i] = 48 + i;            //48,49,50....
+            }
+
+            for (int i = 0; i < totalTasks; i++)
+            {
+                if(taskName.Equals(taskNames[i]))
+                {
+                    taskEnergyReq = taskEnergyReqs[i];
+                }
+            }
+
+
+        }
+   
         /*
          * Reading from the buffer file
          * and storing the result in a datastructure
@@ -431,7 +481,7 @@ namespace GreenSlot
             }
             
             //Calculating available total Green energy
-            for (int i = 0; i < 96; i++)
+            for (int i = 0; i < totalSlots; i++)
             {
                 totalGEnergy = totalGEnergy + gEnergy[i];
             }
@@ -509,10 +559,11 @@ namespace GreenSlot
         }
         public double[] calculateGreenEnery()
         {
+            int totalSlots = 11;
             Random rnd = new Random();
-            double[] greenEnergyAvail = new double[96];
+            double[] greenEnergyAvail = new double[totalSlots];
             double eVal;
-            for (int i = 0; i < 96; i++)
+            for (int i = 0; i < totalSlots; i++)
             {
                 eVal = rnd.Next(0, 1000);
                 greenEnergyAvail[i] = eVal;
@@ -524,7 +575,7 @@ namespace GreenSlot
             double minSlotEnergy = greenEnergyAvail[0];
             List<int> minSlotPos = new List<int>();
 
-            for (int i = 0; i < 96; i++)
+            for (int i = 0; i < totalSlots; i++)
             {
                 if (greenEnergyAvail[i] > maxSlotEnergy)
                 {
@@ -542,7 +593,7 @@ namespace GreenSlot
             }*/
 
 
-            for (int i = 0; i < 96; i++)
+            for (int i = 0; i < totalSlots; i++)
             {
                 if (greenEnergyAvail[i] == maxSlotEnergy)
                 {
@@ -569,13 +620,14 @@ namespace GreenSlot
         /*
          * Random node generator for each slot
          * */
-         public List<int> nodeGenerator()
+        public List<int> nodeGenerator()
         {
+            int totalSlots = 11;
             Random rnd = new Random();
             List<int> nodePerSlotAvail = new List<int>();
             int eVal;
             int counter = 0;
-            for (int i = 0; i < 96; i++)
+            for (int i = 0; i < totalSlots; i++)
             {
                 eVal = rnd.Next(0, 10);
                 nodePerSlotAvail.Add(eVal);
