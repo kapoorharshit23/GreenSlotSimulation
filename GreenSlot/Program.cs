@@ -8,6 +8,7 @@ namespace GreenSlot
 {
     class Program
     {
+        static DateTime localDate = DateTime.Now;
         static void Main(string[] args)
         {
             Program prog = new Program();
@@ -60,7 +61,8 @@ namespace GreenSlot
 
             int totalSlots = 11;
             int totalBrownEnergy = 1000;
-            
+
+            int[] deadlineSlot = new int[tCount];
 
             /*
              *Calculating Energy requirement of a job 
@@ -117,18 +119,23 @@ namespace GreenSlot
              * Calculating slack time for each task, corresponding to current time
              * */
             TimeSpan[] slackTimeSpanArray = new TimeSpan[tCount];
-            DateTime localDate = DateTime.Now;
+            
 
             for (int i = 0; i < tCount; i++)
             {
                 slackTimeSpanArray[i] = taskDateTimeArray[i].Subtract(localDate);
             }
 
+            for (int i = 0; i < tCount; i++)
+            {
+                deadlineSlot[i] = (int)((slackTimeSpanArray[i].TotalSeconds) / (900)) + 1 ;        //900=15(slot duration in minutes)*60(total seconds in a minute)
+            }
+
             double[] taskSlackArray=calculateSlackTime(tCount, taskDateTimeArray, taskRunTimeArray,slackTimeSpanArray);
             
             for (int i=0;i<tCount;i++)
             {
-                Console.WriteLine(tNamesArray[i] + " : " + taskSlackArray[i]);
+                Console.WriteLine(tNamesArray[i] + " : " + taskSlackArray[i]+" deadline slot:"+deadlineSlot[i]);
             }
 
             /*
@@ -156,6 +163,7 @@ namespace GreenSlot
                  */
                 slackTimeSpanArray[sSlackTimeLoc] = TimeSpan.Parse("86400");        //Since our window is one day long
             }
+            Console.WriteLine("Task's Deadlines:");
             for (int i = 0; i < tCount; i++)
             {
                 for (int j = 0; j < tCount; j++)
@@ -182,7 +190,7 @@ namespace GreenSlot
 
             //Making cost array of a job
             Console.WriteLine("______________________________________________________");
-            jobCostArray(slotsRequired, nodeArray, jobQueue, tNamesArray, taskDeadlineArray, taskEnergyRequirement, taskRunTimeArray, gEnergyarray, taskReqArray, tCount);
+            jobCostArray(slotsRequired, nodeArray, jobQueue, tNamesArray, taskDeadlineArray, taskEnergyRequirement, taskRunTimeArray, gEnergyarray, taskReqArray, tCount, deadlineSlot);
         }
         /*
          * Generating cost array of a job to 
@@ -190,7 +198,7 @@ namespace GreenSlot
          * execution on cloud infrastructure.
          * 
          */
-        public void jobCostArray(int[] slotsPerTask, List<int> nodeSlotArray, string[] sortedJobQueue, string[] tNames, string[] tDeadLines, double[] tEnergyReqs, int[] tRunTimes, double[] gEnergy,int[] tReq, int totalTasks)
+        public void jobCostArray(int[] slotsPerTask, List<int> nodeSlotArray, string[] sortedJobQueue, string[] tNames, string[] tDeadLines, double[] tEnergyReqs, int[] tRunTimes, double[] gEnergy,int[] tReq, int totalTasks, int[] tDeadLineSlot)
         {
 
             System.IO.StreamWriter file = new System.IO.StreamWriter(@"C:\Users\Th3 Dark0\Documents\Visual Studio 2015\Projects\GreenSlot\TempBuffer.txt");  //buffer file to save the slot lists
@@ -318,6 +326,7 @@ namespace GreenSlot
                                 Console.Write(item + " ");
                             }
                             Console.WriteLine();
+                            costCalculation(tuple, tNames, tEnergyReqs, gEnergy, totalTasks, tReq, nodeSlotArray, tDeadLines, tDeadLineSlot);
                         }
                     }
                 }
@@ -326,10 +335,10 @@ namespace GreenSlot
 
             //cost calculation for each list or workflows
 
-            foreach (Tuple<string, List<int>> tuple in slotListPerTaskLimit)
-            {
-                costCalculation(tuple,tNames,tEnergyReqs,gEnergy,totalTasks);
-            }
+            //foreach (Tuple<string, List<int>> tuple in slotListPerTaskLimit)
+            //{
+            //    costCalculation(tuple, tNames, tEnergyReqs, gEnergy, totalTasks, tReq, nodeSlotArray, tDeadLines, tDeadLineSlot);
+            //}
 
 
         }
@@ -338,22 +347,32 @@ namespace GreenSlot
          * Calculating the cost of each task's workflow
          * and accordingly scheduling the jobs
          * */
-        public void costCalculation(Tuple<string, List<int>> tuple,string[] taskNames, double[] taskEnergyReqs, double[] greenEnergyPerSlot, int totalTasks)
+        public void costCalculation(Tuple<string, List<int>> tuple,string[] taskNames, double[] taskEnergyReqs, double[] greenEnergyPerSlot, int totalTasks,int[] taskNodes,List<int> nodeArray,string[] taskDeadlines,int[] taskSlotDeadline)
         {
             int dayBrownEnergyPrice = 100;
             int nightBrownEnergyPrice = 60;
+            int deadlineViolationPenalty = 100;
+            int totalPenalty = 0;
+            
 
             double costTuple = 0.00;
+            double totalGreenEnergyAvailable = 0.0;
+            double requiredBrownEnergy = 0.0;
 
-            int totalSlots = 96;
+            int totalSlots = 11;
             int dayNightSlots = 48;
+            int taskRequiredNodes = 0;      //Nodes specified by the user for the task
+            int remainingNodesRequirement = 0;      //nodes to satisfy the remaining task execution in case of brown energy
+            int totalAvailNodes = 0;
+            int deadLineSlot = 0;
 
             //Task information
             string taskName=tuple.Item1;
-            double taskEnergyReq;           
+            double taskEnergyReq=0.0;           
 
             int[] daySlots = new int[dayNightSlots];
             int[] nightSlots = new int[dayNightSlots];
+            
 
             for (int i = 0; i < dayNightSlots; i++)
             {
@@ -366,9 +385,79 @@ namespace GreenSlot
                 if(taskName.Equals(taskNames[i]))
                 {
                     taskEnergyReq = taskEnergyReqs[i];
+                    taskRequiredNodes = taskNodes[i];
+                    deadLineSlot = taskSlotDeadline[i];
                 }
             }
 
+            //Console.WriteLine("Energy req:" + taskEnergyReq);
+
+            //Calculating the green energy stored in those repective slots
+            foreach(int i in tuple.Item2)
+            {
+                totalGreenEnergyAvailable = totalGreenEnergyAvailable + greenEnergyPerSlot[i];
+            }
+
+            //CHecking if available green energy is sufficient to execute the task
+            if (taskEnergyReq < totalGreenEnergyAvailable)
+            {
+                //No need for Brown Energy
+                costTuple = 0;
+            }
+            else
+            {
+                //Brown Energy Required
+                requiredBrownEnergy = taskEnergyReq - totalGreenEnergyAvailable;            //Required Brown energy by the task
+
+                remainingNodesRequirement = (int)(requiredBrownEnergy / (taskEnergyReq / taskRequiredNodes)) + 1;
+                //Cost calculation for brown energy
+
+                /*
+                 * Checking if we can accommodate the remaining task in night when the electricity price is cheap
+                 * */
+                foreach(int slot in tuple.Item2)
+                {
+                    if(slot > 5)                //CHANGE IT TO 47 LATER
+                    {
+                        totalAvailNodes = totalAvailNodes + nodeArray[slot];
+                    }
+                }
+
+                if (remainingNodesRequirement < totalAvailNodes)
+                {
+                    //can be accommodated in NIGHT
+                    costTuple = costTuple + (requiredBrownEnergy * nightBrownEnergyPrice);      //in cents
+                }
+                else
+                {
+                    //has to be evenly divided between NIGHT and DAY
+                    requiredBrownEnergy = (requiredBrownEnergy / tuple.Item2.Count);        //dividing it evenyl in total number of slots
+                    foreach(int slot in tuple.Item2)
+                    {
+                        if (slot > 5)
+                        {
+                            costTuple = costTuple + (requiredBrownEnergy * nightBrownEnergyPrice);
+                        }
+                        else
+                        {
+                            costTuple = costTuple + (requiredBrownEnergy * dayBrownEnergyPrice);
+                        }
+                    }
+                }
+            }
+
+            //Adding the deadline penalty
+            foreach(int slot in tuple.Item2)
+            {
+                if(slot>deadLineSlot)
+                {
+                    totalPenalty = totalPenalty + ((slot - deadLineSlot) * deadlineViolationPenalty);
+                }
+            }
+            costTuple = costTuple + totalPenalty;
+            Console.WriteLine("Cost of this tuple for task:" + tuple.Item1 + " is:" + costTuple);
+            Console.WriteLine("Deadline of this task being:" + deadLineSlot);
+            Console.WriteLine("Penalty applied:" + totalPenalty);
 
         }
    
