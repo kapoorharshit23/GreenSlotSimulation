@@ -465,6 +465,7 @@ namespace GreenSlot
          * Reading from the buffer file
          * and storing the result in a datastructure
          * */
+
         public List<Tuple<string, List<int>>> readBuf(string[] linesFromFile)
         {
             List<Tuple<string, List<int>>> slotListPerTask = new List<Tuple<string, List<int>>>();
